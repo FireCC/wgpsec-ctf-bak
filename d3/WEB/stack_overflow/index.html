@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title><%= pageTitle %></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="shortcut icon" href="static/img/fav.icon" type="image/png" />
+
+    <link href="static/css/nes.min.css" rel="stylesheet" />
+    <link href="static/css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="nav">
+        <div class="nav-elements">
+            <span class="nav-title">
+                <h1><i class="nes-icon is-medium coin" style="transform: scale(3) translate(0%, 10%);"></i> Ascii Converter </h1>
+            </span>
+    
+            <div class="nav-btns">
+                <a href="/" class="nes-btn is-warning">Home</a>
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="main-container">
+        <div class="nes-container with-title container form-container">
+            <h3 class="title"><i class="nes-icon trophy is-small"></i> Convert String to Ascii Now! <i class="nes-icon trophy is-small"></i></h3>
+            <div class="nes-field">
+                <label for="stringField">String</label>
+                <input type="text" id="stringField" name="string" class="nes-input" placeholder="abcde" maxlength="5">
+            </div>
+            <button type="submit" class="nes-btn is-primary" style="margin-top: 10px;" id="submitBtn">submit</button>
+            <div id="result" style="margin-top: 10px;text-align: center;"></div>
+        </div>
+
+        <div class="nes-container with-title container challenge-container">
+            <h3 class="title">STDOUT</h3>
+            <span class="nes-text is-primary" id="stdout"></span>
+        </div>
+    </div>  
+                
+</body>
+
+<script>
+    let submitBtn = document.getElementById("submitBtn");
+    let resultDiv = document.getElementById("result");
+    let stringInput = document.getElementById("stringField");
+    let stdout = document.getElementById("stdout");
+
+    function parseResultHTML(type, message) {
+        return `<h2 class="nes-text is-${type}">${message}</h2>`;
+    }
+
+    submitBtn.onclick = (e) => {
+        submitBtn.disabled = true;
+        resultDiv.innerHTML = parseResultHTML('warning', 'Converting...');
+        let string = stringInput.value;
+
+        if (!/^[0-9a-fA-F]{5}$/.test(string)) {
+          resultDiv.innerHTML = parseResultHTML('error', 'String must be 5 characters long and only contain numbers and letters');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        fetch("/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            stdin: string,
+          }),
+        })
+        
+          .then((response) => response.json())
+          .then((response) => {
+            let res = {};
+            for(key in response){
+                res[key] = response[key].join("<br>");
+            }
+            
+            if (res.status === 'ok') {
+              resultDiv.innerHTML = parseResultHTML('success', res.result ? res.result : 'Converted Successfully! But no result returned');
+              stdout.innerHTML = res.stdout;
+            } else {
+              resultDiv.innerHTML = parseResultHTML('error', res.result ? res.result : 'Failed to Convert!');
+              stdout.innerHTML = res.stdout;
+            }
+          })
+          .catch((e) => {
+            console.log(e);
+          });
+        submitBtn.disabled = false;
+      }
+</script>
+
+</html>

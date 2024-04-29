@@ -1,0 +1,13 @@
+version: '3'
+services:
+  python-frontend:
+    build: ./frontend
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+
+  python-backend:
+    build: ./backend
+    ports:
+      - "8082:8080"
+    restart: unless-stopped
